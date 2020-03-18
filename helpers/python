@@ -19,4 +19,4 @@ else:
     modules = pkgutil.iter_modules()
 
 for mod in modules:
-    print (mod[1])  # noqa: E211
+    print(mod[1])  # noqa: E211
