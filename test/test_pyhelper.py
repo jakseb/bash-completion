@@ -5,6 +5,16 @@ DEFAULT_NEW_HELPER = "helpers/python"
 DEFAULT_OLD_HELPER = "/usr/share/bash-completion/helpers/python"
 
 
+class CompletionDiff:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    @property
+    def equal(self):
+        return len(self.left) == len(self.right) == 0
+
+
 def completions(interp, helper, prefix):
     return set(filtercomp(raw_completions(interp, helper, prefix), prefix))
 
@@ -38,13 +48,7 @@ def compare_all_completions(interp, old_helper, new_helper):
 
 
 def compare_completions(comp_old, comp_new):
-    if comp_old != comp_new:
-        if not comp_old:
-            return "fail null"
-        else:
-            return "fail"
-    else:
-        return "ok"
+    return CompletionDiff(comp_old - comp_new, comp_new - comp_old)
 
 
 if __name__ == "__main__":
@@ -53,5 +57,15 @@ if __name__ == "__main__":
     interp = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_INTERP
     old_helper = DEFAULT_OLD_HELPER
     new_helper = DEFAULT_NEW_HELPER
-    for pkg, result in compare_all_completions(interp, old_helper, new_helper):
-        print(pkg or "<toplevel>", result)
+    for pkg, diff in compare_all_completions(interp, old_helper, new_helper):
+        pkg = pkg or "<toplevel>"
+        if diff.equal:
+            result = "ok"
+        else:
+            result = "fail {} {}".format(len(diff.left), len(diff.right))
+        print(pkg, result)
+        if not diff.equal:
+            for name in diff.left:
+                print("-", name)
+            for name in diff.right:
+                print("+", name)
