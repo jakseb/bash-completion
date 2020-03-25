@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import subprocess
 
 DEFAULT_INTERP = "python"
@@ -53,13 +54,37 @@ def compare_completions(comp_old, comp_new):
     return CompletionDiff(comp_old - comp_new, comp_new - comp_old)
 
 
-if __name__ == "__main__":
-    import sys
+def parse_cmdline():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-o",
+        "--old",
+        help="old/reference helper location",
+        dest="old_helper",
+        default=DEFAULT_OLD_HELPER,
+    )
+    parser.add_argument(
+        "-n",
+        "--new",
+        help="new/tested helper location",
+        dest="new_helper",
+        default=DEFAULT_NEW_HELPER,
+    )
+    parser.add_argument(
+        "interp",
+        help="Python interpreter to run helpers under",
+        nargs="?",
+        default=DEFAULT_INTERP,
+    )
+    return parser.parse_args()
 
-    interp = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_INTERP
-    old_helper = DEFAULT_OLD_HELPER
-    new_helper = DEFAULT_NEW_HELPER
-    for pkg, diff in compare_all_completions(interp, old_helper, new_helper):
+
+if __name__ == "__main__":
+
+    opts = parse_cmdline()
+    for pkg, diff in compare_all_completions(
+        opts.interp, opts.old_helper, opts.new_helper
+    ):
         pkg = pkg or "<toplevel>"
         if diff.equal:
             result = "ok"
