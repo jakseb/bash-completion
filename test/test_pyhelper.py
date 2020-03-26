@@ -39,14 +39,20 @@ def filtercomp(s, prefix):
     return (c for c in s if c.startswith(prefix))
 
 
-def compare_all_completions(interp, old_helper, new_helper):
+def filter_depth(s, depth):
+    if depth is None:
+        return s
+    return (m for m in s if len(m.split(".")) <= depth)
+
+
+def compare_all_completions(interp, old_helper, new_helper, depth=None):
     comp_old = completions(interp, old_helper, "")
     comp_new = completions(interp, new_helper, "")
     result = compare_completions(comp_old, comp_new)
     yield None, result
 
     rcomp_old = list(raw_completions(interp, old_helper, "."))
-    for pkg in rcomp_old:
+    for pkg in filter_depth(rcomp_old, depth):
         prefix = pkg + "."
         comp_old = set(filtercomp(rcomp_old, prefix))
         comp_new = completions(interp, new_helper, prefix)
@@ -69,6 +75,13 @@ def parse_cmdline():
         help="new/tested helper location",
         dest="new_helper",
         default=DEFAULT_NEW_HELPER,
+    )
+    parser.add_argument(
+        "-d",
+        "--depth",
+        help="test only up to given depth",
+        metavar="N",
+        type=int,
     )
     parser.add_argument(
         "interp",
@@ -97,7 +110,7 @@ if __name__ == "__main__":
 
     opts = parse_cmdline()
     for pkg, diff in compare_all_completions(
-        opts.interp, opts.old_helper, opts.new_helper
+        opts.interp, opts.old_helper, opts.new_helper, depth=opts.depth
     ):
         pkg = pkg or "<toplevel>"
         word = "ok" if diff.equal else "fail"
