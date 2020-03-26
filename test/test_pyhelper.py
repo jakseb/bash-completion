@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import subprocess
 
 DEFAULT_INTERP = "python"
 DEFAULT_NEW_HELPER = "helpers/python"
-DEFAULT_OLD_HELPER = "/usr/share/bash-completion/helpers/python"
+BASH_COMPLETION_PATHS = [
+    "/usr/share/bash-completion",
+    "/usr/local/share/bash-completion",
+]
 
 
 class CompletionDiff:
@@ -57,11 +61,7 @@ def compare_completions(comp_old, comp_new):
 def parse_cmdline():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-o",
-        "--old",
-        help="old/reference helper location",
-        dest="old_helper",
-        default=DEFAULT_OLD_HELPER,
+        "-o", "--old", help="old/reference helper location", dest="old_helper",
     )
     parser.add_argument(
         "-n",
@@ -76,7 +76,21 @@ def parse_cmdline():
         nargs="?",
         default=DEFAULT_INTERP,
     )
-    return parser.parse_args()
+    opts = parser.parse_args()
+    if opts.old_helper is None:
+        opts.old_helper = find_old_helper()
+    if opts.old_helper is None:
+        print("error: failed to find the old helper")
+        raise SystemExit(1)
+    return opts
+
+
+def find_old_helper():
+    for bcpath in BASH_COMPLETION_PATHS:
+        path = os.path.join(bcpath, "helpers/python")
+        if os.path.isfile(path):
+            return path
+    return None
 
 
 if __name__ == "__main__":
