@@ -100,13 +100,9 @@ if __name__ == "__main__":
         opts.interp, opts.old_helper, opts.new_helper
     ):
         pkg = pkg or "<toplevel>"
-        if diff.equal:
-            result = "ok"
-        else:
-            result = "fail {} {}".format(len(diff.left), len(diff.right))
-        print(pkg, result)
-        if not diff.equal:
-            for name in diff.left:
-                print("-", name)
-            for name in diff.right:
-                print("+", name)
+        word = "ok" if diff.equal else "fail"
+        print("{} {} {} {}".format(pkg, word, len(diff.left), len(diff.right)))
+        for name in diff.left:
+            print("-", name)
+        for name in diff.right:
+            print("+", name)
