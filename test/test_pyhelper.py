@@ -115,7 +115,7 @@ if __name__ == "__main__":
         pkg = pkg or "<toplevel>"
         word = "ok" if diff.equal else "fail"
         print("{} {} {} {}".format(pkg, word, len(diff.left), len(diff.right)))
-        for name in diff.left:
+        for name in sorted(diff.left):
             print("-", name)
-        for name in diff.right:
+        for name in sorted(diff.right):
             print("+", name)
