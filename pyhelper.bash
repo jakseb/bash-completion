@@ -59,15 +59,16 @@ mkpyvenv() {
 
 mkpyhdiff() {
     ( :
+    fail=
     old="${1:?}" new="${2:?}" || return 1
     pythons="${pythons:-$(echo {venv-,}{python{2,3},pypy3})}"
     testopts="${testopts:-}"
     extrafn="${extrafn:-${testopts:+.$(
         tr -d '[:space:]' <<<"$testopts" | sed 's/^-//'
-    )}}"
+    )}}" || return 1
     [ -f "pyh/$old" ] || return 1
     [ -f "pyh/$new" ] || return 1
-    outd="$(mktemp -d pyhd.tmp.XXXXXX)"
+    outd="$(mktemp -d pyhd.tmp.XXXXXX)" || return 1
     for py in $pythons
     do
         if [[ $py != venv-* ]]
@@ -78,19 +79,22 @@ mkpyhdiff() {
             py_="${py/#venv-}"
             key="v$py_"
             prog="/tmp/venv-$py_/bin/python"
-            mkpyvenv "$py_"
+            mkpyvenv "$py_" || { fail=1; continue; }
         fi
         echo "___ $py ___"
         outfile="$outd/$old-$new-$key$extrafn.diff"
         readdate s0 ns0
+        (
+        shopt -s pipefail
         python -u test/test_pyhelper.py $testopts -o "pyh/$old" -n "pyh/$new" "$prog" |
             tee "$outfile.part" |
             oksameln
+        ) || { fail=1; continue; }
         readdate s1 ns1
         echo "elapsed: $(fmtime $(difftime "$s1" "$s0" "$ns1" "$ns0"))"
         mv "$outfile.part" "$outfile"
     done
-    mv "$outd"/* pyhd/
+    mv "$outd"/*.diff pyhd/
     rmdir -- "$outd"
-    : )
+    return ${fail:-$?} )
 }
