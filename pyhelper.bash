@@ -61,6 +61,10 @@ mkpyhdiff() {
     ( :
     old="${1:?}" new="${2:?}" || return 1
     pythons="${pythons:-$(echo {venv-,}{python{2,3},pypy3})}"
+    testopts="${testopts:-}"
+    extrafn="${extrafn:-${testopts:+.$(
+        tr -d '[:space:]' <<<"$testopts" | sed 's/^-//'
+    )}}"
     [ -f "pyh/$old" ] || return 1
     [ -f "pyh/$new" ] || return 1
     outd="$(mktemp -d pyhd.tmp.XXXXXX)"
@@ -77,9 +81,9 @@ mkpyhdiff() {
             mkpyvenv "$py_"
         fi
         echo "___ $py ___"
-        outfile="$outd/$old-$new-$key.diff"
+        outfile="$outd/$old-$new-$key$extrafn.diff"
         readdate s0 ns0
-        python -u test/test_pyhelper.py -o "pyh/$old" -n "pyh/$new" "$prog" |
+        python -u test/test_pyhelper.py $testopts -o "pyh/$old" -n "pyh/$new" "$prog" |
             tee "$outfile.part" |
             oksameln
         readdate s1 ns1
