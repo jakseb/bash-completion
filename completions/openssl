@@ -98,10 +98,9 @@ _openssl()
                 return
                 ;;
             -starttls)
-                COMPREPLY=( $(compgen -W '
-                    smtp pop3 imap ftp xmpp xmpp-server telnet irc mysql
-                    postgres lmtp nntp sieve ldap
-                    ' -- "$cur") )
+                COMPREPLY=( $(compgen -W "$(
+                    "$1" "$command" -starttls '?' 2>&1 | command sed 1d
+                    )" -- "$cur") )
                 return
                 ;;
             -cipher)
