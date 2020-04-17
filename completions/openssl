@@ -97,9 +97,9 @@ _openssl()
                 _known_hosts_real -- "$cur"
                 return
                 ;;
-            -starttls)
+            -starttls|-conv_form|-param_enc|-ec_conv_form|-ec_param_enc)
                 COMPREPLY=( $(compgen -W "$(
-                    "$1" "$command" -starttls '?' 2>&1 | command sed 1d
+                    "$1" "$command" "$prev" '?@#-' 2>&1 | command grep $'^\t'
                     )" -- "$cur") )
                 return
                 ;;
