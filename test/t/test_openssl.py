@@ -14,3 +14,7 @@ class TestOpenssl:
     def test_3(self, completion):
         assert completion
         assert any(x.startswith("-sha") for x in completion)
+
+    @pytest.mark.complete("openssl s_client -starttls s", require_cmd=True)
+    def test_4(self, completion):
+        assert "smtp" in completion
