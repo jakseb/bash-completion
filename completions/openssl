@@ -101,6 +101,12 @@ _openssl()
                 COMPREPLY=( $(compgen -W "$(
                     "$1" "$command" "$prev" '?@#-' 2>&1 | command grep $'^\t'
                     )" -- "$cur") )
+                if [[ $prev = -starttls ]]; then
+                    COMPREPLY+=( $(compgen -W '
+                    smtp pop3 imap ftp xmpp xmpp-server telnet irc mysql
+                    postgres lmtp nntp sieve ldap
+                    ' -- "$cur") )
+                fi
                 return
                 ;;
             -cipher)
